@@ -1,0 +1,144 @@
+SELECT TO_CHAR(PURCHASEDATE, 'Mon') AS MONTH,
+       COUNT(*) AS NUMBER_OF_PURCHASES
+FROM Invoice
+GROUP BY TO_CHAR(PURCHASEDATE, 'Mon')
+ORDER BY NUMBER_OF_PURCHASES DESC;
+
+SELECT PRODUCTID, SUM(QUANTITYPURCHASED) AS TOTAL_QUANTITY
+FROM Invoice
+GROUP BY PRODUCTID
+HAVING SUM(QUANTITYPURCHASED) > 1;
+
+
+SELECT CustomerId, CustomerName
+FROM Customer
+WHERE CustomerType IN ('Regular', 'Prime')
+  AND CustomerId IN (
+      SELECT CustomerId
+      FROM Subscription
+  );
+
+
+
+SELECT J.JournalId, P.PublisherName
+FROM Journal J
+JOIN Publisher P
+ON J.PublisherId = P.PublisherId
+WHERE P.ContactNo IS NOT NULL;
+
+
+
+
+
+SELECT C.CustomerId, C.CustomerName,
+       COUNT(S.JournalId) AS SUBSCRIPTIONCOUNT
+FROM Customer C
+JOIN Subscription S
+ON C.CustomerId = S.CustomerId
+GROUP BY C.CustomerId, C.CustomerName
+HAVING COUNT(S.JournalId) > 1;
+
+
+SELECT DISTINCT J.JournalName, J.Genre
+FROM Journal J
+JOIN Subscription S
+ON J.JournalId = S.JournalId
+WHERE S.DiscountPercent > 10;
+
+
+
+SELECT DISTINCT P.PublisherName, J.Genre, P.Rating
+FROM Publisher P
+JOIN Journal J
+ON P.PublisherId = J.PublisherId
+WHERE J.Genre IN (
+    SELECT Genre
+    FROM Journal
+    GROUP BY Genre
+    HAVING COUNT(DISTINCT PublisherId) > 1
+);
+
+
+
+SELECT DISTINCT P.PublisherName,
+       COUNT(DISTINCT S.CustomerId) AS NoOfUniqueSubscribers
+FROM Publisher P
+JOIN Journal J ON P.PublisherId = J.PublisherId
+JOIN Subscription S ON J.JournalId = S.JournalId
+GROUP BY P.PublisherName
+HAVING COUNT(DISTINCT S.CustomerId) >= 3;
+
+
+SELECT P.PublisherName,
+       SUM(J.MonthlyCharges * S.DurationInMonths * (1 - S.Discount / 100.0)) AS TOTALREVENUE
+FROM Publisher P
+JOIN Journal J ON P.PublisherId = J.PublisherId
+JOIN Subscription S ON J.JournalId = S.JournalId
+GROUP BY P.PublisherName
+ORDER BY TOTALREVENUE DESC;	
+
+
+SELECT P.PublisherName,
+       COUNT(S.SubscriptionId) AS NO_SUBSCRIPTION
+FROM Publisher P
+JOIN Journal J ON P.PublisherId = J.PublisherId
+JOIN Subscription S ON J.JournalId = S.JournalId
+GROUP BY P.PublisherName
+HAVING COUNT(S.SubscriptionId) >= 3;
+
+
+SELECT C.CustomerName, J.JournalName
+FROM Customer C
+JOIN Subscription S ON C.CustomerId = S.CustomerId
+JOIN Journal J ON S.JournalId = J.JournalId
+WHERE C.State = 'Illinois'
+AND J.Genre = 'Trade';
+
+
+SELECT JournalId, JournalName, Genre, PublisherId
+FROM Journal
+WHERE (PublisherId, Genre) IN (
+    SELECT PublisherId, Genre
+    FROM Journal
+    GROUP BY PublisherId, Genre
+    HAVING COUNT(*) > 1
+);
+
+
+SELECT P.PublisherName,
+       COALESCE(J.Genre, 'NOT PUBLISHED') AS Genre,
+       COUNT(S.CustomerId) AS SubscriberCount
+FROM Publisher P
+LEFT JOIN Journal J
+ON P.PublisherId = J.PublisherId
+LEFT JOIN Subscription S
+ON J.JournalId = S.JournalId
+GROUP BY P.PublisherName, J.Genre
+ORDER BY P.PublisherName, J.Genre;
+
+SELECT P.PublisherName, P.ContactNo,
+       COALESCE(J.JournalName, 'NO JOURNAL') AS JournalName
+FROM Publisher P
+LEFT JOIN Journal J
+ON P.PublisherId = J.PublisherId;
+
+
+SELECT P.PublisherId,
+       COALESCE(J.JournalName, 'Yet To Publish') AS JOURNALPUBLISHED
+FROM Publisher P
+LEFT JOIN Journal J
+ON P.PublisherId = J.PublisherId;
+
+
+SELECT P.PublisherName,
+       COALESCE(J.JournalName, 'NA') AS JournalName
+FROM Publisher P
+LEFT JOIN Journal J
+ON P.PublisherId = J.PublisherId
+AND J.Genre = 'Academics'
+WHERE P.Rating >= 4;
+
+
+
+
+
